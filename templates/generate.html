@@ -1,0 +1,119 @@
+"""
+{% extends 'base.html' %}
+
+{% block title %}Generate Questions - AI Question Generator{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-alt me-2"></i>Document Info</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>File:</strong> {{ file.filename }}</p>
+                    <p><strong>Words:</strong> {{ file.word_count|floatformat:0 }}</p>
+                    <p><strong>Language:</strong> {{ file.detected_language|upper }}</p>
+                    <p><strong>Math Content:</strong> 
+                        {% if file.math_content_detected %}
+                            <span class="badge bg-success">Detected</span>
+                        {% else %}
+                            <span class="badge bg-secondary">None</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header gradient-bg text-white">
+                    <h3 class="mb-0"><i class="fas fa-cogs me-2"></i>Question Generation Settings</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-layer-group me-2"></i>Bloom's Taxonomy Levels</h5>
+                                {% for value, label in bloom_levels %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="bloom_levels" 
+                                               value="{{ value }}" id="bloom_{{ value }}" checked>
+                                        <label class="form-check-label" for="bloom_{{ value }}">
+                                            {{ label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-question-circle me-2"></i>Question Types</h5>
+                                {% for value, label in question_types %}
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="question_types" 
+                                               value="{{ value }}" id="type_{{ value }}" 
+                                               {% if value == 'multiple_choice' or value == 'short_answer' %}checked{% endif %}>
+                                        <label class="form-check-label" for="type_{{ value }}">
+                                            {{ label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label for="difficulty" class="form-label">Difficulty Level</label>
+                                <select class="form-select" name="difficulty" id="difficulty">
+                                    {% for value, label in difficulties %}
+                                        <option value="{{ value }}" {% if value == 'medium' %}selected{% endif %}>
+                                            {{ label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="num_questions" class="form-label">Questions per Type</label>
+                                <input type="range" class="form-range" min="1" max="10" value="3" 
+                                       name="num_questions" id="num_questions">
+                                <div class="text-center">
+                                    <span id="num_questions_value">3</span>
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-4">
+                                <label for="llm_provider" class="form-label">AI Model</label>
+                                <select class="form-select" name="llm_provider" id="llm_provider">
+                                    {% for value, label in llm_providers %}
+                                        <option value="{{ value }}">{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-magic me-2"></i>Generate Questions
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update range slider display
+    document.getElementById('num_questions').addEventListener('input', function() {
+        document.getElementById('num_questions_value').textContent = this.value;
+    });
+</script>
+{% endblock %}
+"""

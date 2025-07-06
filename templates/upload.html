@@ -1,0 +1,49 @@
+"""
+{% extends 'base.html' %}
+
+{% block title %}Upload File - AI Question Generator{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow-lg">
+                <div class="card-header gradient-bg text-white">
+                    <h3 class="mb-0"><i class="fas fa-cloud-upload-alt me-2"></i>Upload Your Document</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" id="uploadForm">
+                        {% csrf_token %}
+                        <div class="mb-4">
+                            <label for="file" class="form-label">Choose File</label>
+                            <input type="file" class="form-control form-control-lg" id="file" name="file" 
+                                   accept=".pdf,.docx,.doc,.txt,.md" required>
+                            <div class="form-text">
+                                Supported formats: PDF, Word (.docx, .doc), Text (.txt), Markdown (.md)
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-upload me-2"></i>Upload & Process
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <h5><i class="fas fa-info-circle me-2"></i>What happens next?</h5>
+                <ol class="list-group list-group-numbered">
+                    <li class="list-group-item">Your document will be processed and analyzed</li>
+                    <li class="list-group-item">Language and content type will be detected</li>
+                    <li class="list-group-item">You'll configure question generation settings</li>
+                    <li class="list-group-item">AI will generate questions based on Bloom's Taxonomy</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+"""
+

@@ -1,0 +1,314 @@
+<!-- templates/chat.html -->
+{% extends 'base.html' %}
+
+{% block title %}Chat with Document - AI Question Generator{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <!-- Document Info Sidebar -->
+        <div class="col-lg-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-alt me-2"></i>Document Info</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>File:</strong> {{ file.filename }}</p>
+                    <p><strong>Words:</strong> {{ file.word_count|floatformat:0 }}</p>
+                    <p><strong>Language:</strong> {{ file.detected_language|upper }}</p>
+                    <p><strong>Math Content:</strong> 
+                        {% if file.math_content_detected %}
+                            <span class="badge bg-success">Yes</span>
+                        {% else %}
+                            <span class="badge bg-secondary">No</span>
+                        {% endif %}
+                    </p>
+                    <hr>
+                    <a href="{% url 'results' file.id %}" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Questions
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6><i class="fas fa-bolt me-2"></i>Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-sm btn-outline-info" onclick="askQuestion('Summarize this document')">
+                            📝 Summarize
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="askQuestion('What are the key concepts?')">
+                            🔑 Key Concepts
+                        </button>
+                        <button class="btn btn-sm btn-outline-warning" onclick="askQuestion('Create a study guide')">
+                            📚 Study Guide
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="clearChat()">
+                            🗑️ Clear Chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat Interface -->
+        <div class="col-lg-9">
+            <div class="card h-100">
+                <div class="card-header gradient-bg text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-comments me-2"></i>Chat with Your Document
+                    </h4>
+                    <small>Ask questions about the content and get AI-powered answers</small>
+                </div>
+                
+                <!-- Chat Messages Area -->
+                <div class="card-body d-flex flex-column" style="height: 500px;">
+                    <div id="chatMessages" class="flex-grow-1 overflow-auto mb-3" style="max-height: 400px;">
+                        <!-- Welcome message -->
+                        <div class="message bot-message mb-3">
+                            <div class="d-flex">
+                                <div class="avatar me-2">
+                                    <i class="fas fa-robot text-primary"></i>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-bubble bg-light p-3 rounded">
+                                        <p class="mb-1">👋 Hello! I'm ready to help you understand your document.</p>
+                                        <p class="mb-0">Ask me anything about the content, request summaries, explanations, or study materials!</p>
+                                    </div>
+                                    <small class="text-muted">Just now</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Typing Indicator -->
+                    <div id="typingIndicator" class="typing-indicator d-none mb-3">
+                        <div class="d-flex">
+                            <div class="avatar me-2">
+                                <i class="fas fa-robot text-primary"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="typing-bubble bg-light p-2 rounded">
+                                    <div class="typing-dots">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Input Area -->
+                    <div class="input-group">
+                        <input type="text" id="messageInput" class="form-control" 
+                               placeholder="Ask a question about your document..." 
+                               onkeypress="handleKeyPress(event)">
+                        <button class="btn btn-primary" type="button" onclick="sendMessage()">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.message-bubble {
+    max-width: 80%;
+    word-wrap: break-word;
+}
+
+.user-message .message-bubble {
+    background-color: #007bff !important;
+    color: white;
+    margin-left: auto;
+}
+
+.bot-message .message-bubble {
+    background-color: #f8f9fa;
+}
+
+.avatar {
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    flex-shrink: 0;
+}
+
+.user-message {
+    flex-direction: row-reverse;
+}
+
+.user-message .avatar {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Typing animation */
+.typing-dots {
+    display: flex;
+    gap: 3px;
+}
+
+.typing-dots span {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #6c757d;
+    animation: typing 1.4s infinite;
+}
+
+.typing-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-10px);
+    }
+}
+
+#chatMessages {
+    scroll-behavior: smooth;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const fileId = '{{ file.id }}';
+const chatMessagesContainer = document.getElementById('chatMessages');
+const messageInput = document.getElementById('messageInput');
+const typingIndicator = document.getElementById('typingIndicator');
+
+function sendMessage() {
+    const message = messageInput.value.trim();
+    if (!message) return;
+    
+    // Add user message to chat
+    addMessage(message, 'user');
+    
+    // Clear input
+    messageInput.value = '';
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    // Send to backend
+    fetch(`/api/chat/${fileId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({
+            message: message
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideTypingIndicator();
+        if (data.response) {
+            addMessage(data.response, 'bot');
+        } else {
+            addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+        }
+    })
+    .catch(error => {
+        hideTypingIndicator();
+        addMessage('Sorry, I encountered an error. Please try again.', 'bot');
+        console.error('Error:', error);
+    });
+}
+
+function addMessage(content, sender) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message mb-3`;
+    
+    const now = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    const avatar = sender === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot text-primary"></i>';
+    
+    messageDiv.innerHTML = `
+        <div class="d-flex">
+            <div class="avatar me-2">
+                ${avatar}
+            </div>
+            <div class="message-content">
+                <div class="message-bubble ${sender === 'user' ? 'bg-primary text-white' : 'bg-light'} p-3 rounded">
+                    ${content}
+                </div>
+                <small class="text-muted">${now}</small>
+            </div>
+        </div>
+    `;
+    
+    chatMessagesContainer.appendChild(messageDiv);
+    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+}
+
+function showTypingIndicator() {
+    typingIndicator.classList.remove('d-none');
+    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+}
+
+function hideTypingIndicator() {
+    typingIndicator.classList.add('d-none');
+}
+
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        sendMessage();
+    }
+}
+
+function askQuestion(question) {
+    messageInput.value = question;
+    sendMessage();
+}
+
+function clearChat() {
+    if (confirm('Are you sure you want to clear the chat?')) {
+        // Keep only the welcome message
+        const welcomeMessage = chatMessagesContainer.firstElementChild;
+        chatMessagesContainer.innerHTML = '';
+        chatMessagesContainer.appendChild(welcomeMessage);
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// Focus input on page load
+document.addEventListener('DOMContentLoaded', function() {
+    messageInput.focus();
+});
+</script>
+{% endblock %}

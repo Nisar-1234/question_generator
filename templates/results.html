@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}Generated Questions - AI Question Generator{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-check-circle me-2 text-success"></i>Generated Questions</h2>
+        <div>
+            <a href="{% url 'chat' file.id %}" class="btn btn-info me-2">
+                <i class="fas fa-comments me-1"></i>Chat
+            </a>
+            <button class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fas fa-download me-1"></i>Export
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="#"><i class="fas fa-file-pdf me-2"></i>PDF</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fas fa-file-word me-2"></i>Word</a></li>
+                <li><a class="dropdown-item" href="#"><i class="fas fa-file-code me-2"></i>JSON</a></li>
+            </ul>
+        </div>
+    </div>
+    
+    <!-- Updated Statistics Cards with Multilingual Support -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-primary">{{ total_questions }}</h4>
+                    <p class="mb-0">
+                        {% if file.detected_language == 'hi' %}
+                            कुल प्रश्न
+                        {% elif file.detected_language == 'te' %}
+                            మొత్తం ప్రశ్నలు
+                        {% elif file.detected_language == 'ur' %}
+                            کل سوالات
+                        {% else %}
+                            Total Questions
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-success">{{ file.word_count }}</h4>
+                    <p class="mb-0">
+                        {% if file.detected_language == 'hi' %}
+                            विश्लेषित शब्द
+                        {% elif file.detected_language == 'te' %}
+                            విశ్లేషించిన పదాలు
+                        {% elif file.detected_language == 'ur' %}
+                            تجزیہ شدہ الفاظ
+                        {% else %}
+                            Words Analyzed
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-info">{{ questions_by_bloom|length }}</h4>
+                    <p class="mb-0">
+                        {% if file.detected_language == 'hi' %}
+                            ब्लूम स्तर
+                        {% elif file.detected_language == 'te' %}
+                            బ్లూమ్ స్థాయిలు
+                        {% elif file.detected_language == 'ur' %}
+                            بلوم کی سطح
+                        {% else %}
+                            Bloom Levels
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center">
+                <div class="card-body">
+                    <h4 class="text-warning">{{ file.detected_language|upper }}</h4>
+                    <p class="mb-0">
+                        {% if file.detected_language == 'hi' %}
+                            भाषा
+                        {% elif file.detected_language == 'te' %}
+                            భాష
+                        {% elif file.detected_language == 'ur' %}
+                            زبان
+                        {% else %}
+                            Language
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bloom Level Tabs -->
+    <ul class="nav nav-tabs" id="bloomTabs" role="tablist">
+        {% for bloom_level, bloom_questions in questions_by_bloom.items %}
+            <li class="nav-item" role="presentation">
+                <button class="nav-link {% if forloop.first %}active{% endif %}" 
+                        id="tab-{{ forloop.counter }}" data-bs-toggle="tab" 
+                        data-bs-target="#bloom-{{ forloop.counter }}" type="button">
+                    {{ bloom_level }} <span class="badge bg-secondary ms-1">{{ bloom_questions|length }}</span>
+                </button>
+            </li>
+        {% endfor %}
+    </ul>
+    
+    <div class="tab-content mt-4" id="bloomTabContent">
+        {% for bloom_level, bloom_questions in questions_by_bloom.items %}
+            <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                 id="bloom-{{ forloop.counter }}" role="tabpanel">
+                
+                {% for question in bloom_questions %}
+                    <div class="card question-card {{ question.bloom_level }} mb-3">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <span class="badge bg-primary bloom-badge me-2">{{ question.get_bloom_level_display }}</span>
+                                    <span class="badge bg-secondary bloom-badge me-2">{{ question.get_question_type_display }}</span>
+                                    <span class="badge bg-info bloom-badge">{{ question.get_difficulty_display }}</span>
+                                </div>
+                                <small class="text-muted">#{{ forloop.counter }}</small>
+                            </div>
+                            
+                            <h6 class="card-title">{{ question.question_text }}</h6>
+                            
+                            {% if question.options %}
+                                <div class="mt-2">
+                                    {% for option in question.options %}
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" disabled>
+                                            <label class="form-check-label">{{ option }}</label>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            {% if question.answer %}
+                                <div class="mt-3">
+                                    <button class="btn btn-sm btn-outline-success" type="button" 
+                                            data-bs-toggle="collapse" data-bs-target="#answer-{{ question.id }}">
+                                        <i class="fas fa-eye me-1"></i>
+                                        {% if file.detected_language == 'hi' %}
+                                            उत्तर दिखाएं
+                                        {% elif file.detected_language == 'te' %}
+                                            సమాధానం చూపించండి
+                                        {% elif file.detected_language == 'ur' %}
+                                            جواب دکھائیں
+                                        {% else %}
+                                            Show Answer
+                                        {% endif %}
+                                    </button>
+                                    <div class="collapse mt-2" id="answer-{{ question.id }}">
+                                        <div class="alert alert-success mb-0">
+                                            <strong>
+                                                {% if file.detected_language == 'hi' %}
+                                                    उत्तर:
+                                                {% elif file.detected_language == 'te' %}
+                                                    సమాధానం:
+                                                {% elif file.detected_language == 'ur' %}
+                                                    جواب:
+                                                {% else %}
+                                                    Answer:
+                                                {% endif %}
+                                            </strong> {{ question.answer }}
+                                            {% if question.explanation %}
+                                                <br><strong>
+                                                    {% if file.detected_language == 'hi' %}
+                                                        व्याख्या:
+                                                    {% elif file.detected_language == 'te' %}
+                                                        వివరణ:
+                                                    {% elif file.detected_language == 'ur' %}
+                                                        وضاحت:
+                                                    {% else %}
+                                                        Explanation:
+                                                    {% endif %}
+                                                </strong> {{ question.explanation }}
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

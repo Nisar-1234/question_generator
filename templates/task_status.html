@@ -1,0 +1,49 @@
+"""
+{% extends 'base.html' %}
+
+{% block title %}Processing - AI Question Generator{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-cog fa-spin fa-3x text-primary"></i>
+                    </div>
+                    <h3>Generating Questions...</h3>
+                    <p class="text-muted mb-4">Our AI is analyzing your document and creating questions.</p>
+                    
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                             role="progressbar" style="width: {{ task_result.progress }}%">
+                        </div>
+                    </div>
+                    
+                    <p><strong>Status:</strong> {{ task_result.get_status_display }}</p>
+                    <p><strong>Progress:</strong> {{ task_result.progress }}%</p>
+                    
+                    {% if task_result.status == 'failed' %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> {{ task_result.error }}
+                        </div>
+                        <a href="{% url 'upload' %}" class="btn btn-primary">Try Again</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-refresh page every 3 seconds if task is still processing
+    {% if task_result.status == 'processing' or task_result.status == 'pending' %}
+        setTimeout(function() {
+            location.reload();
+        }, 3000);
+    {% endif %}
+</script>
+{% endblock %}
+"""
+

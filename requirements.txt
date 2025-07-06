@@ -1,0 +1,49 @@
+Django==5.2.4
+djangorestframework==3.15.2
+django-cors-headers==4.4.0
+celery==5.4.0
+redis==5.1.0
+channels==4.1.0
+channels-redis==4.2.0
+PyMuPDF==1.24.0
+python-docx==1.1.2
+langdetect==1.0.9
+openai==1.51.0
+anthropic==0.34.0
+reportlab==4.2.0
+weasyprint==62.0
+spacy==3.7.6
+numpy==1.26.4
+pandas==2.2.0
+django-widget-tweaks==1.5.0
+django-crispy-forms==2.3
+crispy-bootstrap5==2024.2
+gunicorn==22.0.0
+whitenoise==6.7.0
+python-decouple==3.8
+Pillow==10.4.0
+
+
+
+password nisar123
+
+
+(venv) PS E:\genai POC\question_generator> python manage.py createsuperuser
+Username (leave blank to use 'naseer'): user
+Email address: user123
+Error: Enter a valid email address.
+Email address: user@123
+Error: Enter a valid email address.
+Email address: mohammednisar621@gmail.com
+Password: 
+Password (again):
+This password is too short. It must contain at least 8 characters.
+This password is too common.
+This password is entirely numeric.
+Bypass password validation and create user anyway? [y/N]: N
+Password: 
+Password (again):
+Error: Your passwords didn't match.
+Password:
+Password (again):
+Superuser created successfully.
