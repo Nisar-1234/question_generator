@@ -1,4 +1,3 @@
-"""
 {% extends 'base.html' %}
 
 {% block title %}Processing - AI Question Generator{% endblock %}
@@ -37,7 +36,6 @@
 </div>
 
 <script>
-    // Auto-refresh page every 3 seconds if task is still processing
     {% if task_result.status == 'processing' or task_result.status == 'pending' %}
         setTimeout(function() {
             location.reload();
@@ -45,5 +43,3 @@
     {% endif %}
 </script>
 {% endblock %}
-"""
-

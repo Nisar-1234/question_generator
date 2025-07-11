@@ -1,4 +1,3 @@
-"""
 {% extends 'base.html' %}
 
 {% block title %}Generate Questions - AI Question Generator{% endblock %}
@@ -110,10 +109,8 @@
 
 {% block extra_js %}
 <script>
-    // Update range slider display
     document.getElementById('num_questions').addEventListener('input', function() {
         document.getElementById('num_questions_value').textContent = this.value;
     });
 </script>
 {% endblock %}
-"""
