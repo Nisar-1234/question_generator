@@ -915,3 +915,119 @@ def chat_with_document(request, file_id):
             return JsonResponse({'error': str(e)}, status=500)
     
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+
+# Add these views to core/views.py
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def test_ai_integration(request):
+    """Test AI integration endpoint"""
+    if request.method == 'POST':
+        try:
+            from .llm_providers import LLMProviderFactory
+            from django.conf import settings
+            
+            # Test content
+            test_content = """
+            Machine learning is a subset of artificial intelligence that enables computers to learn and improve from experience without being explicitly programmed. It focuses on developing algorithms that can analyze data, identify patterns, and make predictions or decisions. There are three main types of machine learning: supervised learning, unsupervised learning, and reinforcement learning. Supervised learning uses labeled data to train models, while unsupervised learning finds patterns in unlabeled data. Reinforcement learning involves learning through trial and error with rewards and penalties.
+            """
+            
+            # Test parameters
+            test_params = {
+                'bloom_levels': ['remembering', 'understanding'],
+                'question_types': ['multiple_choice', 'short_answer'],
+                'difficulty': 'medium',
+                'num_questions_per_type': 1,
+                'language': 'en'
+            }
+            
+            # Check OpenAI availability
+            openai_status = {
+                'api_key_configured': bool(settings.OPENAI_API_KEY),
+                'api_key_preview': f"{settings.OPENAI_API_KEY[:10]}..." if settings.OPENAI_API_KEY else "Not set"
+            }
+            
+            # Test provider creation
+            provider = LLMProviderFactory.create_provider('openai')
+            provider_info = {
+                'type': type(provider).__name__,
+                'use_openai': getattr(provider, 'use_openai', False)
+            }
+            
+            # Generate test questions
+            questions = provider.generate_questions(test_content, test_params)
+            
+            return JsonResponse({
+                'status': 'success',
+                'openai_status': openai_status,
+                'provider_info': provider_info,
+                'questions_generated': len(questions),
+                'questions': questions[:2],  # First 2 questions for preview
+                'test_content_length': len(test_content)
+            })
+            
+        except Exception as e:
+            return JsonResponse({
+                'status': 'error',
+                'error': str(e),
+                'error_type': type(e).__name__
+            })
+    
+    return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+@csrf_exempt
+def check_ai_status(request):
+    """Check AI integration status"""
+    try:
+        from django.conf import settings
+        import openai
+        
+        status = {
+            'openai_api_key_set': bool(settings.OPENAI_API_KEY),
+            'openai_module_available': True,
+            'settings_debug': settings.DEBUG,
+        }
+        
+        if settings.OPENAI_API_KEY:
+            try:
+                # Test a simple OpenAI call
+                client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+                
+                # Make a simple test call
+                response = client.chat.completions.create(
+                    model="gpt-4o-mini",
+                    messages=[{"role": "user", "content": "Say 'AI integration test successful'"}],
+                    max_tokens=10
+                )
+                
+                status['openai_test_call'] = 'success'
+                status['openai_response'] = response.choices[0].message.content
+                
+            except Exception as e:
+                status['openai_test_call'] = 'failed'
+                status['openai_error'] = str(e)
+        
+        return JsonResponse(status)
+        
+    except ImportError as e:
+        return JsonResponse({
+            'openai_module_available': False,
+            'import_error': str(e)
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'error': str(e)
+        })
+
+# Add these URL patterns to core/urls.py
+def add_debug_urls():
+    """Add these to your core/urls.py urlpatterns list"""
+    return [
+        path('debug/test-ai/', views.test_ai_integration, name='test_ai'),
+        path('debug/ai-status/', views.check_ai_status, name='ai_status'),
+    ]

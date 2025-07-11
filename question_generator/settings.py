@@ -8,6 +8,46 @@ SECRET_KEY = config('SECRET_KEY', default='your-secret-key-here')
 DEBUG = config('DEBUG', default=True, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
 
+# Add this to the top of your question_generator/settings.py file, right after the imports
+
+import os
+from pathlib import Path
+from decouple import config
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables
+SECRET_KEY = config('SECRET_KEY', default='your-secret-key-here')
+DEBUG = config('DEBUG', default=True, cast=bool)
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',')])
+
+# ... your existing settings ...
+
+# AI API Keys - Make sure these are at the end of settings.py
+OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
+ANTHROPIC_API_KEY = config('ANTHROPIC_API_KEY', default='')
+GEMINI_API_KEY = config('GEMINI_API_KEY', default='')
+
+# Add this logging configuration to see what's happening
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'core.llm_providers': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+        'core.tasks': {
+            'handlers': ['console'],
+            'level': 'INFO',
+        },
+    },
+}
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',

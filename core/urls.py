@@ -84,4 +84,6 @@ urlpatterns = [
     path('export/all/txt/', views.export_all_questions_txt, name='export_all_txt'),
     path('export/all/json/', views.export_all_questions_json, name='export_all_json'),
     path('export/all/csv/', views.export_all_questions_csv, name='export_all_csv'),
+    path('debug/test-ai/', views.test_ai_integration, name='test_ai'),
+    path('debug/ai-status/', views.check_ai_status, name='ai_status'),
 ]
